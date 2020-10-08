@@ -168,6 +168,10 @@ class Spectrum1D(OneDSpectrumMixin, NDDataRef):
         # Attempt to parse the spectral axis. If none is given, try instead to
         # parse a given wcs. This is put into a GWCS object to
         # then be used behind-the-scenes for all specutils operations.
+        if wcs is None and spectral_axis is None:
+            size = len(flux) if not flux.isscalar else 1
+            spectral_axis = np.arange(size) * u.pixel
+
         if spectral_axis is not None:
             # Ensure that the spectral axis is an astropy Quantity
             if not isinstance(spectral_axis, u.Quantity):
@@ -198,11 +202,6 @@ class Spectrum1D(OneDSpectrumMixin, NDDataRef):
                 self._spectral_axis = spectral_axis
 
             wcs = gwcs_from_array(self._spectral_axis)
-        elif wcs is None:
-            # If no spectral axis or wcs information is provided, initialize
-            # with an empty gwcs based on the flux.
-            size = len(flux) if not flux.isscalar else 1
-            wcs = gwcs_from_array(np.arange(size) * u.Unit(""))
 
         super().__init__(
             data=flux.value if isinstance(flux, u.Quantity) else flux,
